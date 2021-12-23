@@ -6,8 +6,12 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
+	"net"
+	"net/http"
 
 	"github.com/grantae/certinfo"
+	"golang.org/x/net/http2"
 )
 
 func tlsVersionToString(tlsVersion uint16) string {
@@ -208,6 +212,9 @@ var defaultTlsCertPEM = "-----BEGIN CERTIFICATE-----\n" +
 
 func main() {
 
+	var cert tls.Certificate
+	var err error
+
 	tlsVersion := uint16(tls.VersionTLS10)
 	tlsVersionFlag := flag.String("tlsversion", "1.2", "TLS version of the server")
 	serverPort := flag.Int("port", 443, "Server port")
@@ -240,8 +247,6 @@ func main() {
 		return
 	}
 
-	var cert tls.Certificate
-	var err error
 	if *pathToServerKey == "" || *pathToServerCert == "" {
 		cert, err = tls.X509KeyPair([]byte(defaultTlsCertPEM), []byte(defaultTlsKeyPEM))
 		if err != nil {
@@ -306,50 +311,64 @@ func main() {
 			return fmt.Errorf("no client certificate")
 		}
 
-		fmt.Printf("Peer Certificate : %s\n\n", x509ToString(certs[0]))
+		fmt.Printf("%s\n\n", x509ToString(certs[0]))
 		return nil
 	}
 
-	url := "localhost:" + fmt.Sprintf("%d", *serverPort)
-	listener, err := tls.Listen("tcp", url, config)
-	if err != nil {
-		fmt.Printf("ERROR: tls.Listen() failed: %s\n", err)
-		return
+	address := "localhost:" + fmt.Sprintf("%d", *serverPort)
+	server := &http.Server{
+		Addr:      address,
+		TLSConfig: config,
 	}
-	for {
-		fmt.Printf("INFO: Server listening...\n")
-		conn, err := listener.Accept()
-		if err != nil {
-			fmt.Printf("ERROR: listener.Accept() failed: %s\n\n", err)
-			return
+	server.ConnState = func(conn net.Conn, state http.ConnState) {
+		switch state {
+		case http.StateNew:
+			fmt.Printf("INFO: Connection State: NEW\n")
+		case http.StateActive:
+			fmt.Printf("INFO: Connection State: ACTIVE\n")
+		case http.StateIdle:
+			fmt.Printf("INFO: Connection State: IDLE\n")
+		case http.StateHijacked:
+			fmt.Printf("INFO: Connection State: HIJACKED\n")
+		case http.StateClosed:
+			fmt.Printf("INFO: Connection State: CLOSED\n")
+		default:
+			fmt.Printf("INFO: Connection State: UNKNOWN\n")
 		}
-		fmt.Printf("INFO: Connection accepted from %s\n", conn.RemoteAddr())
-		tlsConn, ok := conn.(*tls.Conn)
+		_, ok := conn.(*tls.Conn)
 		if ok {
 			fmt.Printf("INFO: Connection is TLS\n")
 		}
-		go handleClient(tlsConn)
+		fmt.Print("\n")
 	}
+	http2.ConfigureServer(server, nil)
+	http.HandleFunc("/", handler)
+
+	fmt.Printf("INFO: Server listening...\n")
+	server.ListenAndServeTLS("", "")
 }
 
-func handleClient(conn *tls.Conn) {
-	fmt.Printf("INFO: Handling connection\n\n")
+func handler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text")
 
-	buf := []byte("Connected!\n\n")
-	conn.Write(buf)
+	state := r.TLS
 
-	state := conn.ConnectionState()
-	conn.Write([]byte(fmt.Sprintf("HandshakeComplete  : %v\n", state.HandshakeComplete)))
-	conn.Write([]byte(fmt.Sprintf("Version            : %s(%v)\n", tlsVersionToString(state.Version), state.Version)))
-	conn.Write([]byte(fmt.Sprintf("CipherSuite        : %s(%v)\n", cipherSuiteToString(state.CipherSuite), state.CipherSuite)))
-	conn.Write([]byte(fmt.Sprintf("NegotiatedProtocol : %s\n", state.NegotiatedProtocol)))
+	io.WriteString(w, "Connected!\n\n")
 
-	for i, cert := range state.PeerCertificates {
-		conn.Write([]byte(fmt.Sprintf("Peer Certificate %d\n", i+1)))
-		conn.Write([]byte(fmt.Sprintf("- Subject: %s\n", cert.Subject)))
-		conn.Write([]byte(fmt.Sprintf("- %s\n", x509ToString(cert))))
+	io.WriteString(w, "=========== TLS Connection State ===========\n")
+	io.WriteString(w, "HandshakeComplete  : "+fmt.Sprintf("%v", state.HandshakeComplete)+"\n")
+	io.WriteString(w, "Version            : "+tlsVersionToString(state.Version)+"("+fmt.Sprintf("%v", state.Version)+")\n")
+	io.WriteString(w, "CipherSuite        : "+tlsVersionToString(state.CipherSuite)+"("+fmt.Sprintf("%v", state.CipherSuite)+")\n")
+	io.WriteString(w, "NegotiatedProtocol : "+state.NegotiatedProtocol+"\n\n")
+
+	io.WriteString(w, "=========== Request State ===========\n")
+	io.WriteString(w, "Protocol           : "+r.Proto+"\n")
+	io.WriteString(w, "Remote             : "+r.RemoteAddr+"\n")
+	io.WriteString(w, "RequestURI         : "+r.RequestURI+"\n\n")
+
+	io.WriteString(w, "=========== Peer Certificate ===========\n")
+	if len(state.PeerCertificates) > 0 {
+		io.WriteString(w, "Subject            : "+state.PeerCertificates[0].Subject.CommonName+"\n")
+		io.WriteString(w, "Cert               : "+x509ToString(state.PeerCertificates[0])+"\n\n")
 	}
-
-	conn.Close()
-	fmt.Printf("INFO: Connection closed\n\n")
 }
