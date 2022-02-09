@@ -358,7 +358,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "=========== TLS Connection State ===========\n")
 	io.WriteString(w, "HandshakeComplete  : "+fmt.Sprintf("%v", state.HandshakeComplete)+"\n")
 	io.WriteString(w, "Version            : "+tlsVersionToString(state.Version)+"("+fmt.Sprintf("%v", state.Version)+")\n")
-	io.WriteString(w, "CipherSuite        : "+tlsVersionToString(state.CipherSuite)+"("+fmt.Sprintf("%v", state.CipherSuite)+")\n")
+	io.WriteString(w, "CipherSuite        : "+cipherSuiteToString(state.CipherSuite)+"("+fmt.Sprintf("%v", state.CipherSuite)+")\n")
 	io.WriteString(w, "NegotiatedProtocol : "+state.NegotiatedProtocol+"\n\n")
 
 	io.WriteString(w, "=========== Request State ===========\n")
