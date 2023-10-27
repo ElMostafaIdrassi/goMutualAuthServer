@@ -33,6 +33,8 @@ func tlsVersionToString(tlsVersion uint16) string {
 
 func cipherSuiteToString(cipherSuite uint16) string {
 	switch cipherSuite {
+
+	// TLS 1.0 - 1.2 cipher suites.
 	case tls.TLS_RSA_WITH_RC4_128_SHA:
 		return "TLS_RSA_WITH_RC4_128_SHA"
 	case tls.TLS_RSA_WITH_3DES_EDE_CBC_SHA:
@@ -77,12 +79,17 @@ func cipherSuiteToString(cipherSuite uint16) string {
 		return "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256"
 	case tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256:
 		return "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256"
+
+	// TLS 1.3 cipher suites.
 	case tls.TLS_AES_128_GCM_SHA256:
 		return "TLS_AES_128_GCM_SHA256"
 	case tls.TLS_AES_256_GCM_SHA384:
 		return "TLS_AES_256_GCM_SHA384"
 	case tls.TLS_CHACHA20_POLY1305_SHA256:
 		return "TLS_CHACHA20_POLY1305_SHA256"
+
+	// TLS_FALLBACK_SCSV isn't a standard cipher suite but an indicator
+	// that the client is doing version fallback. See RFC 7507.
 	case tls.TLS_FALLBACK_SCSV:
 		return "TLS_FALLBACK_SCSV"
 	default:
@@ -179,8 +186,8 @@ var defaultTlsKeyPEM = "-----BEGIN RSA PRIVATE KEY-----\n" +
 	"-----END RSA PRIVATE KEY-----\n"
 
 var defaultTlsCertPEM = "-----BEGIN CERTIFICATE-----\n" +
-	"MIIFSTCCAzGgAwIBAgIIYKkL+dNc+VwwDQYJKoZIhvcNAQELBQAwFzEVMBMGA1UE\n" +
-	"AwwMRGVtb19Sb290X0NBMB4XDTIxMTIyMDIxMzIwMFoXDTIyMTIyMDIxMzIwMFow\n" +
+	"MIIFSTCCAzGgAwIBAgIIBXrCrEwd+PswDQYJKoZIhvcNAQELBQAwFzEVMBMGA1UE\n" +
+	"AwwMRGVtb19Sb290X0NBMB4XDTIzMTAyNzE5MjkwMFoXDTI0MTAyNzE5MjkwMFow\n" +
 	"FDESMBAGA1UEAxMJbG9jYWxob3N0MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIIC\n" +
 	"CgKCAgEAsM0gklnSFVwV87ylxqeObB60xYdoRKh+vIxvzID3/VuiJYWzSbw8RrGC\n" +
 	"siQA926nAjYZWtfJsN+7S4N5eCTj8ofysjMmfPbZp4S4aXZA9M36E3DMHOjJmFW4\n" +
@@ -196,18 +203,18 @@ var defaultTlsCertPEM = "-----BEGIN CERTIFICATE-----\n" +
 	"mDAMBgNVHRMBAf8EAjAAMB0GA1UdDgQWBBSs/H3eu/eWzu+CMQVKGvxrfNTdSjAL\n" +
 	"BgNVHQ8EBAMCA+gwEwYDVR0lBAwwCgYIKwYBBQUHAwEwFAYDVR0RBA0wC4IJbG9j\n" +
 	"YWxob3N0MBEGCWCGSAGG+EIBAQQEAwIGQDAeBglghkgBhvhCAQ0EERYPeGNhIGNl\n" +
-	"cnRpZmljYXRlMA0GCSqGSIb3DQEBCwUAA4ICAQAS1r6Dh3DoMy1Nq/ChpFI3JnI9\n" +
-	"8Hg+JT9eADyA7TUceC1gjYkaZ3/6FiYt9er8lwj49griCz5NWc//MvUWizQKCnpp\n" +
-	"mBYG1PfGvMx5t9NlCJQRyF0M/mqL0qeiR3hccOxWUhYjszz6UEzjDZFmyOcn8kVq\n" +
-	"uq2dwc+7V5S20NnjbF3LK4JrV50+L+HPwM3qT2yuCVhAnlnVq1MVhoOsvKx97QvL\n" +
-	"28yXonPIA1Z3nPcBytFgofKiMC8y0Rn3uteNoqPLGFt8+dYtMgXDnI7vxDwXgnqh\n" +
-	"ibfclTpSaTOAosXhTGSB2w1vZvtLyrpoE+tJAoOcSTvL5KVX1/dcISb3wuvK5VCf\n" +
-	"8qvkgA/Fc9zhqBVlkZPoJnNfwI9qgzcflwjcYar8QyZg/pb3N8T/BwfZPWQ/83j4\n" +
-	"qmP7Yz0oNvuIZpoN/Yi4eBdub7KTsu4OfVgcBPaRL+iH4DvPZNboHu44JkfEw2PA\n" +
-	"0ZY7ZkUxgJvB1F+FezRE1jQe8PPlC/KNH/S2e/h2Zd+xXnZ25IG20lLdvS/ax6zm\n" +
-	"m9U0NXIlzL/1akuSugL90YLcnnaIhz4LHyjOKOXuIxWlqPGtvPASCAbPj5dfZSWt\n" +
-	"F4ahnoXyMwMwLfLUF1sQHZ3tUlx3w4+8M3Hj336U32ldHskWJU1ME0k8NQDqSl2W\n" +
-	"aUpT228IkSGeJdmSjQ==\n" +
+	"cnRpZmljYXRlMA0GCSqGSIb3DQEBCwUAA4ICAQA5NiIxXuXXpWh08w8kwJiEN+Ft\n" +
+	"M4zR1jZYXa799nKYqrrF3dzFeEn8PSh6Rp5D6l5timlyOgIA7Uk3aLgPWwuCEO+N\n" +
+	"hT7O2BGZEpcdwOh91U4zGCLcuWGzz0VvBEYs9VMucyuGF7/JOicLEfl5lUFruj8h\n" +
+	"t/HFz2F6dPdFs5+FX81/5lPoidZffxYYDeEBdAGq9Slc2LDGvPM/CxME7WsvvVN4\n" +
+	"VdUfwW6jIwrlNSevGV+bf9F7o8B03M02c+rlZdMbcXzyh4HCZ3RK5r6wzBbOJPAl\n" +
+	"TUiXi9GolFQTLTVUzHbhT+Ztqyn3JJEWidNxWEY3GhP3KMopVOQSZCDuLQBaAG5n\n" +
+	"UU9NSEohuFLx+qKn5+nkl5YppbV1TkkN3Xm06rq8hezCU7/AeAMisrFl6ODA3VSa\n" +
+	"X0xsG++xbxpyJyAbFOPNruOUGG6S5XIQ6evpRNHb5h7LVWqTvr9gu7H4gNnsHn+F\n" +
+	"w3yvPdXftpB8bQBf3RMwLHhZjvly/xRdJQ4JFdgHycKRSCK5lc2ryp5NcdbOSkfP\n" +
+	"fV0CCfJ+wpeZgdqc6uvXzdwbYBd3slBl23WhSLLgWBfK7+n/KKrTauP6b110h6qH\n" +
+	"+LEENKgqS6xvEitdnSVp7qPhREpTUIea1bVS6fweCdGGLWweUtBNRG5wULVrDa+c\n" +
+	"HDpCHCwQXsFz82P3KA==\n" +
 	"-----END CERTIFICATE-----\n"
 
 func main() {
@@ -270,6 +277,18 @@ func main() {
 		MinVersion: tlsVersion,
 		MaxVersion: tlsVersion,
 	}
+
+	// Server configurations must set one of config.Certificates, config.GetCertificate or
+	// config.GetConfigForClient.
+	// We chose to set config.GetCertificate.
+	//
+	// GetCertificate returns a Certificate based on the given
+	// ClientHelloInfo. It will only be called if the client supplies SNI
+	// information or if Certificates is empty.
+	//
+	// If GetCertificate is nil or returns nil, then the certificate is
+	// retrieved from NameToCertificate. If NameToCertificate is nil, the
+	// best element of Certificates will be used.
 	config.GetCertificate = func(clientHello *tls.ClientHelloInfo) (*tls.Certificate, error) {
 		fmt.Printf("\n======== ClientHello ========\n")
 
@@ -283,15 +302,18 @@ func main() {
 
 		return &cert, nil
 	}
-	config.VerifyConnection = func(state tls.ConnectionState) error {
-		fmt.Printf("\n======== VerifyConnection ========\n")
 
-		fmt.Printf("HandshakeComplete      : %v\n", state.HandshakeComplete)
-		fmt.Printf("Version                : %s(%v)\n", tlsVersionToString(state.Version), state.Version)
-		fmt.Printf("CipherSuite            : %s(%v)\n\n", cipherSuiteToString(state.CipherSuite), state.CipherSuite)
-
-		return nil
-	}
+	// VerifyPeerCertificate, if not nil, is called after normal
+	// certificate verification by either a TLS client or server. It
+	// receives the raw ASN.1 certificates provided by the peer and also
+	// any verified chains that normal processing found. If it returns a
+	// non-nil error, the handshake is aborted and that error results.
+	//
+	// If normal verification fails then the handshake will abort before
+	// considering this callback. If normal verification is disabled by
+	// setting InsecureSkipVerify, or (for a server) when ClientAuth is
+	// RequestClientCert or RequireAnyClientCert, then this callback will
+	// be considered but the verifiedChains argument will always be nil.
 	config.VerifyPeerCertificate = func(certificates [][]byte, _ [][]*x509.Certificate) error {
 		fmt.Printf("\n======== VerifyPeerCertificate ========\n")
 
@@ -312,6 +334,27 @@ func main() {
 		}
 
 		fmt.Printf("%s\n\n", x509ToString(certs[0]))
+		return nil
+	}
+
+	// VerifyConnection, if not nil, is called after normal certificate
+	// verification and after VerifyPeerCertificate by either a TLS client
+	// or server. If it returns a non-nil error, the handshake is aborted
+	// and that error results.
+	//
+	// If normal verification fails then the handshake will abort before
+	// considering this callback. This callback will run for all connections
+	// regardless of InsecureSkipVerify or ClientAuth settings.
+	config.VerifyConnection = func(state tls.ConnectionState) error {
+		fmt.Printf("\n======== VerifyConnection ========\n")
+
+		fmt.Printf("Version                : %s(%v)\n", tlsVersionToString(state.Version), state.Version)
+		fmt.Printf("HandshakeComplete      : %v\n", state.HandshakeComplete)
+		fmt.Printf("DidResume              : %v\n", state.DidResume)
+		fmt.Printf("CipherSuite            : %s(%v)\n", cipherSuiteToString(state.CipherSuite), state.CipherSuite)
+		fmt.Printf("NegotiatedProtocol     : %v\n", state.NegotiatedProtocol)
+		fmt.Printf("ServerName             : %v\n\n", state.ServerName)
+
 		return nil
 	}
 
@@ -344,6 +387,7 @@ func main() {
 	http2.ConfigureServer(server, nil)
 	http.HandleFunc("/", handler)
 
+	fmt.Printf("INFO: Server is running at https://localhost:%v\n", *serverPort)
 	fmt.Printf("INFO: Server listening...\n")
 	server.ListenAndServeTLS("", "")
 }
@@ -356,15 +400,23 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "Connected!\n\n")
 
 	io.WriteString(w, "=========== TLS Connection State ===========\n")
-	io.WriteString(w, "HandshakeComplete  : "+fmt.Sprintf("%v", state.HandshakeComplete)+"\n")
-	io.WriteString(w, "Version            : "+tlsVersionToString(state.Version)+"("+fmt.Sprintf("%v", state.Version)+")\n")
-	io.WriteString(w, "CipherSuite        : "+cipherSuiteToString(state.CipherSuite)+"("+fmt.Sprintf("%v", state.CipherSuite)+")\n")
-	io.WriteString(w, "NegotiatedProtocol : "+state.NegotiatedProtocol+"\n\n")
+	io.WriteString(w, "Version                : "+tlsVersionToString(state.Version)+"("+fmt.Sprintf("%v", state.Version)+")\n")
+	io.WriteString(w, "HandshakeComplete      : "+fmt.Sprintf("%v", state.HandshakeComplete)+"\n")
+	io.WriteString(w, "DidResume              : "+fmt.Sprintf("%v", state.DidResume)+"\n")
+	io.WriteString(w, "CipherSuite            : "+cipherSuiteToString(state.CipherSuite)+"("+fmt.Sprintf("%v", state.CipherSuite)+")\n")
+	io.WriteString(w, "NegotiatedProtocol     : "+state.NegotiatedProtocol+"\n")
+	io.WriteString(w, "ServerName             : "+state.ServerName+"\n\n")
 
 	io.WriteString(w, "=========== Request State ===========\n")
-	io.WriteString(w, "Protocol           : "+r.Proto+"\n")
-	io.WriteString(w, "Remote             : "+r.RemoteAddr+"\n")
-	io.WriteString(w, "RequestURI         : "+r.RequestURI+"\n\n")
+	io.WriteString(w, "Method                 : "+r.Method+"\n")
+	io.WriteString(w, "Protocol               : "+r.Proto+"\n")
+	io.WriteString(w, "Header                 : "+fmt.Sprintf("%v", r.Header)+"\n")
+	io.WriteString(w, "Host                   : "+r.Host+"\n")
+	io.WriteString(w, "Form                   : "+fmt.Sprintf("%v", r.Form)+"\n")
+	io.WriteString(w, "PostForm               : "+fmt.Sprintf("%v", r.PostForm)+"\n")
+	io.WriteString(w, "Trailer                : "+fmt.Sprintf("%v", r.Trailer)+"\n")
+	io.WriteString(w, "RemoteAddr             : "+r.RemoteAddr+"\n")
+	io.WriteString(w, "RequestURI             : "+r.RequestURI+"\n\n")
 
 	io.WriteString(w, "=========== Peer Certificate ===========\n")
 	if len(state.PeerCertificates) > 0 {
